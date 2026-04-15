@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gwarthlow Farm Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--gd:#1C3A1C;--gm:#2D5A2D;--gl:#A0B89A;--gold:#8B6914;--goldf:#F0E8C8;--cream:#F7F4EE;--cm:#EDE8DF;--border:#D8D0BC;--text:#2A2A2A;--muted:#888;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--text);min-height:100vh;}
+#setup-banner{background:#fff3cd;border-bottom:2px solid #e6b800;padding:12px 20px;font-size:13px;}
+#setup-banner h3{font-size:14px;margin-bottom:8px;color:#856404;}
+#setup-banner .fields{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+#setup-banner input{padding:6px 10px;border:1.5px solid var(--border);border-radius:5px;font-size:12px;width:100%;max-width:340px;}
+#setup-banner input.wide{max-width:500px;}
+#setup-banner button{padding:6px 16px;background:var(--gd);color:var(--goldf);border:none;border-radius:5px;font-size:12px;cursor:pointer;margin-top:4px;}
+#setup-banner.hidden{display:none;}
+#sync-status{font-size:11px;padding:4px 20px;background:var(--gd);color:var(--gl);text-align:right;}
+header{background:var(--gd);padding:16px 20px 0;border-bottom:4px solid var(--gold);}
+.header-top{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.header-top h1{font-family:'Playfair Display',serif;font-size:20px;color:var(--goldf);font-weight:700;}
+.header-meta{margin-left:auto;color:var(--gl);font-size:11px;font-family:monospace;text-align:right;}
+.tabs{display:flex;}
+.tab{padding:8px 16px;background:transparent;color:var(--gl);border:none;cursor:pointer;font-family:'Source Serif 4',serif;font-size:13px;border-radius:6px 6px 0 0;transition:all .15s;}
+.tab.active{background:var(--cream);color:var(--gd);font-weight:600;}
+.input-area{background:#fff;border-bottom:1px solid var(--border);padding:13px 20px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+.input-label{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px;display:block;}
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+textarea{flex:1;padding:9px 11px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;font-family:'Source Serif 4',serif;background:#FDFBF7;resize:vertical;color:var(--text);outline:none;line-height:1.5;transition:border-color .15s;}
+textarea:focus{border-color:var(--gm);}
+.log-btn{padding:9px 18px;background:var(--gd);color:var(--goldf);border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;height:44px;white-space:nowrap;font-family:'Source Serif 4',serif;}
+.log-btn:disabled{background:#A0B89A;cursor:not-allowed;}
+.input-hint{margin:5px 0 0;color:#BBB;font-size:11px;}
+.err{margin:5px 0 0;color:#B0392B;font-size:12px;display:none;}
+.filter-bar{padding:7px 20px;background:var(--cm);border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.fl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-right:3px;}
+.fb{padding:3px 8px;border-radius:20px;border:1.5px solid var(--border);background:#fff;color:#666;font-size:11px;cursor:pointer;font-family:'Source Serif 4',serif;}
+.entries{padding:14px 20px;max-width:960px;}
+.dg{margin-bottom:18px;}
+.dh{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.dl{font-size:11px;font-weight:600;color:#5A4A2A;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap;}
+.dr{flex:1;height:1px;background:var(--border);}
+.entry{background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.04);animation:si .2s ease;}
+@keyframes si{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+.ei{display:flex;align-items:flex-start;gap:8px;}
+.eb{flex:1;}
+.et{display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap;}
+.etitle{font-weight:600;font-size:13px;color:#1C1C1C;}
+.ecat{padding:2px 6px;border-radius:12px;font-size:10px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
+.evia{font-size:10px;color:#999;font-style:italic;}
+.edesc{margin:0 0 4px;font-size:12px;color:#444;line-height:1.55;}
+.emeta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.mtag{font-size:11px;}
+.mtime{font-size:10px;color:#AAA;margin-left:auto;}
+.eact{display:flex;flex-direction:column;gap:2px;}
+.abtn{background:none;border:none;cursor:pointer;font-size:12px;color:#CCC;padding:1px 2px;}
+.cd{margin-top:6px;padding:7px;background:#FEF0E6;border-radius:4px;display:flex;align-items:center;gap:7px;font-size:12px;color:#8B2A1A;}
+.dcy{padding:2px 8px;background:#B0392B;color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer;}
+.dcn{padding:2px 8px;background:#eee;color:#555;border:none;border-radius:4px;font-size:11px;cursor:pointer;}
+.empty{text-align:center;padding:50px 0;color:#AAA;}
+/* Fields */
+.fv{padding:18px 20px;}
+.cs{margin-bottom:22px;}
+.ch{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.ct{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;}
+.cc{font-size:12px;color:var(--muted);}
+.cr{flex:1;height:1px;background:var(--border);}
+.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:6px;}
+.fc{background:#fff;border:1px solid var(--border);border-radius:6px;padding:9px 11px;cursor:pointer;transition:box-shadow .15s,transform .1s;}
+.fc:hover{box-shadow:0 3px 12px rgba(0,0,0,.1);transform:translateY(-1px);}
+.fn{font-weight:600;font-size:13px;color:#1C1C1C;margin-bottom:2px;}
+.fs{font-size:11px;color:#666;margin-bottom:4px;}
+.fi{display:flex;gap:4px;flex-wrap:wrap;}
+.it{font-size:10px;background:#F5F0E8;padding:1px 4px;border-radius:3px;color:#555;}
+/* Diary */
+.dv{padding:0;}
+.dvh{background:var(--gd);padding:14px 20px;display:flex;align-items:center;gap:10px;}
+.dvb{background:none;border:none;color:var(--goldf);font-size:20px;cursor:pointer;padding:0 6px 0 0;line-height:1;}
+.dvh h2{font-family:'Playfair Display',serif;color:var(--goldf);font-size:18px;}
+.dvhc{color:var(--gl);font-size:11px;margin-top:1px;}
+.dvbody{padding:16px 20px;max-width:900px;}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+@media(max-width:580px){.dgrid{grid-template-columns:1fr;}}
+.dc{background:#fff;border:1px solid var(--border);border-radius:8px;padding:14px;}
+.dc h3{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:10px;}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.si2{text-align:center;}
+.sv{font-size:20px;font-weight:700;font-family:'Playfair Display',serif;}
+.sl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.nr{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.nr:last-child{margin-bottom:0;}
+.nn{font-size:12px;font-weight:600;width:30px;}
+.nbw{flex:1;background:#F0EBE0;border-radius:4px;height:9px;overflow:hidden;}
+.nb{height:9px;border-radius:4px;transition:width .4s ease;}
+.nns{font-size:10px;color:var(--muted);white-space:nowrap;min-width:120px;text-align:right;}
+.dh2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;}
+.de{background:#fff;border:1px solid var(--border);border-radius:6px;padding:9px 12px;margin-bottom:6px;}
+.det{display:flex;gap:7px;align-items:baseline;margin-bottom:2px;}
+.ded{font-size:11px;color:var(--muted);}
+.detitle{font-size:13px;font-weight:600;color:#1C1C1C;}
+.dedesc{font-size:12px;color:#555;line-height:1.5;}
+.deq{font-size:11px;color:#6B3D9A;margin-top:2px;}
+.noh{font-size:13px;color:var(--muted);font-style:italic;padding:16px 0;}
+#notify{position:fixed;top:14px;right:14px;z-index:999;background:var(--gd);color:var(--goldf);padding:9px 16px;border-radius:6px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.2);display:none;}
+</style>
+</head>
+<body>
+
+<!-- Setup Banner -->
+<div id="setup-banner">
+  <h3>⚙️ First-time setup — enter your credentials</h3>
+  <div class="fields">
+    <div>
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:3px">Anthropic API Key</label>
+      <input type="password" id="inp-api" placeholder="sk-ant-..." class="wide"/>
+    </div>
+    <div>
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:3px">Supabase URL</label>
+      <input type="text" id="inp-surl" placeholder="https://xxxx.supabase.co" class="wide"/>
+    </div>
+    <div>
+      <label style="font-size:11px;color:#666;display:block;margin-bottom:3px">Supabase Anon Key</label>
+      <input type="password" id="inp-skey" placeholder="eyJ..." class="wide"/>
+    </div>
+  </div>
+  <div style="font-size:11px;color:#856404;margin-bottom:6px">
+    ⚠️ Before saving: go to your <a href="https://supabase.com" target="_blank">Supabase project</a> → SQL Editor and run this once to create the table:<br>
+    <code style="background:#fff8e1;padding:2px 6px;border-radius:3px;font-size:11px;display:inline-block;margin-top:4px">
+    CREATE TABLE IF NOT EXISTS farm_log_entries (id text PRIMARY KEY, raw text, title text, description text, category text, fields jsonb, machinery text, quantity text, nutrient_application jsonb, logged_at timestamptz, job_date timestamptz, injected boolean DEFAULT false);
+    </code>
+  </div>
+  <button onclick="saveSetup()">Save & Connect</button>
+</div>
+
+<div id="sync-status">Not connected</div>
+<div id="notify"></div>
+
+<header>
+  <div class="header-top">
+    <span style="font-size:20px">🌾</span>
+    <h1>Gwarthlow Farm Log</h1>
+    <div class="header-meta">
+      <div id="entry-count">0 entries</div>
+      <div>2025–2026 · 270.2 acres</div>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('log')">📋 Job Log</button>
+    <button class="tab" onclick="showTab('fields')">🗺 Fields</button>
+  </div>
+</header>
+
+<div id="tab-log">
+  <div class="input-area">
+    <label class="input-label">Log a job</label>
+    <div class="input-row">
+      <textarea id="job-input" rows="2" placeholder='e.g. "50kg/acre 0-20-30 on all grass" or "Rolled the 1 cut fields"'
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();logJob();}"></textarea>
+      <button class="log-btn" id="log-btn" onclick="logJob()">Log Job</button>
+    </div>
+    <div class="err" id="errmsg"></div>
+    <p class="input-hint">Describe jobs naturally — field names, rates and totals calculated automatically. Syncs to all devices.</p>
+  </div>
+  <div class="filter-bar" id="filter-bar"></div>
+  <div class="entries" id="entries-container"><div style="color:#999;font-style:italic;padding:16px">Loading…</div></div>
+</div>
+
+<div id="tab-fields" style="display:none">
+  <div id="fields-view" class="fv"></div>
+  <div id="diary-view" class="dv" style="display:none"></div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────────────────
+const SUPABASE_URL = "https://pfpblalujxocxqjkrruo.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBmcGJsYWx1anhvY3hxamtycnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4ODIxNjMsImV4cCI6MjA5MDQ1ODE2M30.wj6lEYy278DUP5xqHYP0H7fmChL9pB3Z_LrYJaxriok";
+
+// ── Farm Data ──────────────────────────────────────────────────────────────
+const FIELDS=[
+  {n:"5150",name:"Horse Pasteur",     acres:5.39, ha:2.18, crop:"1 Cut then Graze",  pH:5.75,P:3,  K:1,  Mg:3,  OM:9,    sd:"Apr 2025"},
+  {n:"9720",name:"Land Field",        acres:8.95, ha:3.62, crop:"Winter Wheat",      pH:6.41,P:2,  K:0,  Mg:3,  OM:9.69, sd:"Apr 2025"},
+  {n:"4437",name:"Cow Pasteur",       acres:8.15, ha:3.3,  crop:"1 Cut then Graze",  pH:5.6, P:3,  K:1,  Mg:3,  OM:9.2,  sd:"Apr 2025"},
+  {n:"6418",name:"Meadow",            acres:5.63, ha:2.28, crop:"1 Cut then Graze",  pH:6.4, P:3,  K:2,  Mg:3,  OM:null, sd:"Mar 2021"},
+  {n:"2333",name:"New Covert",        acres:16.9, ha:6.84, crop:"2 Cuts then Graze", pH:6.5, P:3.5,K:2.4,Mg:5.4,OM:null, sd:"Mar 2022"},
+  {n:"6993",name:"Eight",             acres:8.03, ha:3.25, crop:"Maize",             pH:6.8, P:2,  K:null,Mg:2, OM:null, sd:"Feb 2023"},
+  {n:"7884",name:"Six",               acres:5.96, ha:2.41, crop:"Maize",             pH:6.1, P:1,  K:1,  Mg:2,  OM:null, sd:"Feb 2023"},
+  {n:"686", name:"Road Field",        acres:7.88, ha:3.19, crop:"2 Cuts then Graze", pH:6.2, P:0,  K:1,  Mg:3,  OM:null, sd:"Feb 2023"},
+  {n:"8896",name:"Small Field",       acres:3.56, ha:1.44, crop:"2 Cuts then Graze", pH:5.8, P:0,  K:0,  Mg:3,  OM:null, sd:"Feb 2023"},
+  {n:"6639",name:"Big Orchard",       acres:1.33, ha:0.54, crop:"Grazing Grass",     pH:null,P:null,K:null,Mg:null,OM:null,sd:"2010"},
+  {n:"6140",name:"Small Orchard",     acres:0.54, ha:0.22, crop:"Grazing Grass",     pH:null,P:null,K:null,Mg:null,OM:null,sd:"2010"},
+  {n:"5125",name:"Bank Field",        acres:4.84, ha:1.96, crop:"Grazing Grass",     pH:5.76,P:4,  K:3,  Mg:4,  OM:11.7, sd:"Apr 2025"},
+  {n:"4914",name:"Paddock",           acres:3.34, ha:1.35, crop:"Grazing Grass",     pH:6.25,P:3,  K:null,Mg:4, OM:12.8, sd:"Mar 2021"},
+  {n:"3110",name:"Big Moors",         acres:16.09,ha:6.51, crop:"1 Cut then Graze",  pH:5.9, P:2,  K:1,  Mg:3,  OM:null, sd:"Mar 2021"},
+  {n:"4695",name:"Game Keepers Patch",acres:2.97, ha:1.2,  crop:"SFI/Bird Cover",    pH:null,P:null,K:null,Mg:null,OM:null,sd:"2010"},
+  {n:"5899",name:"Corner Field",      acres:7.98, ha:3.23, crop:"Maize",             pH:6.9, P:3.1,K:2.6,Mg:4.5,OM:6.2,  sd:"Feb 2026"},
+  {n:"2583",name:"Wernllwyd",         acres:6.77, ha:2.74, crop:"Maize",             pH:6.5, P:3.2,K:2.5,Mg:4.5,OM:5.5,  sd:"Feb 2026"},
+  {n:"681", name:"Oaken Meadow",      acres:9.59, ha:3.88, crop:"Maize",             pH:6.6, P:3.8,K:2.5,Mg:4,  OM:5.6,  sd:"Feb 2026"},
+  {n:"4389",name:"Dyke Field",        acres:12.01,ha:4.86, crop:"Maize",             pH:7.0, P:3.9,K:3.4,Mg:4.7,OM:5.2,  sd:"Feb 2026"},
+  {n:"2696",name:"Savages",           acres:14.85,ha:6.01, crop:"2 Cuts then Graze", pH:6.61,P:2,  K:1,  Mg:2,  OM:6.82, sd:"Apr 2025"},
+  {n:"5377",name:"Bottom Big Field",  acres:10.33,ha:4.18, crop:"1 Cut then Graze",  pH:6.3, P:3.1,K:2.1,Mg:4.7,OM:null, sd:"Mar 2022"},
+  {n:"7162",name:"Big Field",         acres:25.99,ha:10.52,crop:"Winter Barley",     pH:7.3, P:2.4,K:2.2,Mg:2.1,OM:null, sd:"Mar 2016"},
+  {n:"3565",name:"Dulux",             acres:13.54,ha:5.48, crop:"Maize",             pH:6.47,P:2,  K:1,  Mg:3,  OM:6.15, sd:"Apr 2025"},
+  {n:"2395",name:"Quarry Field",      acres:11.12,ha:4.5,  crop:"Winter Wheat",      pH:6.1, P:2.6,K:1.5,Mg:3.4,OM:null, sd:"Mar 2020"},
+  {n:"1004",name:"Little Moors",      acres:14.01,ha:5.67, crop:"Winter Wheat",      pH:6.8, P:2.3,K:1.6,Mg:5.8,OM:null, sd:"Mar 2021"},
+  {n:"8990",name:"Western Meadow",    acres:10.63,ha:4.3,  crop:"Winter Wheat",      pH:6.2, P:3.7,K:2.4,Mg:4.3,OM:null, sd:"Mar 2022"},
+  {n:"8877",name:"Seven",             acres:6.87, ha:2.78, crop:"Maize",             pH:6.3, P:1,  K:1,  Mg:3,  OM:null, sd:"Feb 2023"},
+  {n:"369", name:"House Field",       acres:9.61, ha:3.89, crop:"Maize",             pH:5.8, P:1,  K:1,  Mg:3,  OM:null, sd:"Feb 2023"},
+  {n:"8455",name:"Bottom Field",      acres:10.87,ha:4.4,  crop:"Maize",             pH:5.7, P:1,  K:null,Mg:3, OM:null, sd:"Feb 2023"},
+  {n:"499", name:"Under Dave",        acres:6.52, ha:2.64, crop:"Maize",             pH:6.8, P:1,  K:1,  Mg:3,  OM:null, sd:"Feb 2023"},
+];
+const TARGETS={"1 Cut then Graze":{N:81,P:24,K:49},"2 Cuts then Graze":{N:101,P:36,K:73},"Grazing Grass":{N:61,P:12,K:24},"Winter Wheat":{N:89,P:32,K:32},"Winter Barley":{N:73,P:24,K:24},"Maize":{N:25,P:36,K:49},"SFI/Bird Cover":{N:0,P:0,K:0}};
+const CROP_ORDER=["1 Cut then Graze","2 Cuts then Graze","Grazing Grass","Winter Wheat","Winter Barley","Maize","SFI/Bird Cover"];
+const CC={"Grazing Grass":"#2D6A2D","1 Cut then Graze":"#3D7A3D","2 Cuts then Graze":"#5A9A5A","Winter Wheat":"#8B6914","Winter Barley":"#C4870A","Maize":"#6B3D9A","SFI/Bird Cover":"#1A5C7A"};
+const CATS=[{label:"Cultivation",color:"#8B6914",bg:"#FDF3DC"},{label:"Drilling",color:"#2D6A2D",bg:"#E8F5E8"},{label:"Spraying",color:"#1A5C7A",bg:"#E0F0F8"},{label:"Harvesting",color:"#C4520A",bg:"#FEF0E6"},{label:"Fertilising",color:"#6B3D9A",bg:"#F3EBF9"},{label:"Silage",color:"#3D7A3D",bg:"#E6F4E6"},{label:"Machinery",color:"#555555",bg:"#F0F0F0"},{label:"Fencing",color:"#7A4E2D",bg:"#F5EDE6"},{label:"Livestock",color:"#B0392B",bg:"#FDECEA"},{label:"General",color:"#4A6070",bg:"#EBF0F4"}];
+
+const SYSTEM_PROMPT=`You are a farm job log assistant for Gwarthlow Farm, Powys. Farmer: Ed. Machinery: Massey Ferguson 4707, Merlo TF 33.7. Season 2025-2026.
+FIELDS: ${JSON.stringify(FIELDS.map(f=>({name:f.name,acres:f.acres,crop:f.crop})))}
+Slurry nutrient values (splash plate, cattle, 6%DM): per 1000 gallons: available N=2.72 kg/acre, P2O5=4.99 kg/acre, K2O=11.34 kg/acre.
+Product analysis: 0-20-30 (N:0,P:0.20,K:0.30 per kg), urea 40-0-0 (N:0.40), AN 34.5-0-0 (N:0.345), DAP 18-46-0 (N:0.18,P:0.46), Aftercut 24-0-15 (N:0.24,K:0.15), N28 liquid (N:0.28 per litre).
+Rules: resolve crop mentions to field names; calculate totals when rate+acreage known; grass=all grass types.
+Respond ONLY valid JSON:
+{"title":"max 6 words","description":"1-2 sentences with field names and totals","category":"Cultivation|Drilling|Spraying|Harvesting|Fertilising|Silage|Machinery|Fencing|Livestock|General","fields":["names"],"machinery":"or null","quantity":"rate and total or null","date_override":"ISO or null","nutrient_application":{"product":"name","rate_kg_acre":0,"N_kg_acre":0,"P_kg_acre":0,"K_kg_acre":0}}`;
+
+// ── State ──────────────────────────────────────────────────────────────────
+let entries=[],filterCat="All",editingId=null,confirmDeleteId=null,apiKey="",currentDiary=null,syncInterval=null;
+
+// ── Setup ──────────────────────────────────────────────────────────────────
+function loadSetup(){
+  apiKey=localStorage.getItem("gw-api")||"";
+  const surl=localStorage.getItem("gw-surl")||"";
+  const skey=localStorage.getItem("gw-skey")||"";
+  if(apiKey&&surl&&skey){
+    document.getElementById("setup-banner").classList.add("hidden");
+  }
+}
+function saveSetup(){
+  const api=document.getElementById("inp-api").value.trim();
+  const surl=document.getElementById("inp-surl").value.trim();
+  const skey=document.getElementById("inp-skey").value.trim();
+  if(!api||!surl||!skey){notify("⚠️ Please fill in all three fields");return;}
+  apiKey=api;
+  localStorage.setItem("gw-api",api);
+  localStorage.setItem("gw-surl",surl);
+  localStorage.setItem("gw-skey",skey);
+  document.getElementById("setup-banner").classList.add("hidden");
+  notify("✅ Saved — connecting…");
+  init();
+}
+
+// ── Supabase helpers ───────────────────────────────────────────────────────
+function sbUrl(){return localStorage.getItem("gw-surl")||SUPABASE_URL;}
+function sbKey(){return localStorage.getItem("gw-skey")||SUPABASE_KEY;}
+
+async function sbFetch(path,opts={}){
+  const url=sbUrl()+"/rest/v1/"+path;
+  const headers={"Content-Type":"application/json","apikey":sbKey(),"Authorization":"Bearer "+sbKey(),...(opts.headers||{})};
+  const res=await fetch(url,{...opts,headers});
+  if(!res.ok){const t=await res.text();throw new Error(t);}
+  return res.status===204?null:res.json();
+}
+
+async function loadFromSupabase(){
+  try{
+    setSyncStatus("🔄 Syncing…");
+    const data=await sbFetch("farm_log_entries?order=job_date.desc&limit=500");
+    entries=data.map(r=>({
+      id:r.id,raw:r.raw,title:r.title,description:r.description,
+      category:r.category,fields:r.fields||[],machinery:r.machinery,
+      quantity:r.quantity,nutrient_application:r.nutrient_application,
+      loggedAt:r.logged_at,jobDate:r.job_date,injected:r.injected
+    }));
+    renderEntries();
+    document.getElementById("entry-count").textContent=entries.length+(entries.length===1?" entry":" entries");
+    setSyncStatus("✅ Synced · "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){setSyncStatus("⚠️ Sync failed: "+e.message);}
+}
+
+async function saveToSupabase(entry){
+  await sbFetch("farm_log_entries",{
+    method:"POST",
+    headers:{"Prefer":"return=minimal"},
+    body:JSON.stringify({
+      id:entry.id,raw:entry.raw,title:entry.title,description:entry.description,
+      category:entry.category,fields:entry.fields,machinery:entry.machinery,
+      quantity:entry.quantity,nutrient_application:entry.nutrient_application,
+      logged_at:entry.loggedAt,job_date:entry.jobDate,injected:entry.injected
+    })
+  });
+}
+
+async function deleteFromSupabase(id){
+  await sbFetch("farm_log_entries?id=eq."+id,{method:"DELETE"});
+}
+
+async function updateInSupabase(id,description){
+  await sbFetch("farm_log_entries?id=eq."+id,{
+    method:"PATCH",headers:{"Prefer":"return=minimal"},
+    body:JSON.stringify({description})
+  });
+}
+
+function setSyncStatus(msg){document.getElementById("sync-status").textContent=msg;}
+
+// ── Log Job ────────────────────────────────────────────────────────────────
+async function logJob(){
+  const input=document.getElementById("job-input");
+  const btn=document.getElementById("log-btn");
+  const err=document.getElementById("errmsg");
+  const text=input.value.trim();
+  if(!text)return;
+  if(!apiKey){err.textContent="Please enter your Anthropic API key in setup above.";err.style.display="block";return;}
+  btn.disabled=true;btn.textContent="Logging…";err.style.display="none";
+  const now=new Date().toISOString();
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:SYSTEM_PROMPT,messages:[{role:"user",content:text}]})
+    });
+    const data=await res.json();
+    if(data.error)throw new Error(data.error.message);
+    const raw=data.content.map(c=>c.text||"").join("");
+    const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
+    const entry={
+      id:Date.now().toString(),raw:text,
+      title:parsed.title||"Farm Job",description:parsed.description||text,
+      category:parsed.category||"General",fields:parsed.fields||[],
+      machinery:parsed.machinery||null,quantity:parsed.quantity||null,
+      nutrient_application:parsed.nutrient_application||null,
+      loggedAt:now,jobDate:parsed.date_override||now,injected:false
+    };
+    await saveToSupabase(entry);
+    entries.unshift(entry);
+    renderEntries();
+    document.getElementById("entry-count").textContent=entries.length+(entries.length===1?" entry":" entries");
+    input.value="";
+    notify("✅ Logged & synced");
+    setSyncStatus("✅ Synced · "+new Date().toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}));
+  }catch(e){err.textContent="Error: "+e.message;err.style.display="block";}
+  btn.disabled=false;btn.textContent="Log Job";
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function getCat(l){return CATS.find(c=>c.label===l)||CATS[CATS.length-1];}
+function fmtDate(iso){return new Date(iso).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});}
+function fmtTime(iso){return new Date(iso).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});}
+function fmtShort(iso){return new Date(iso).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});}
+
+function renderEntries(){
+  const c=document.getElementById("entries-container");
+  const fil=filterCat==="All"?entries:entries.filter(e=>e.category===filterCat);
+  if(!fil.length){c.innerHTML=`<div class="empty"><div style="font-size:44px;margin-bottom:14px">🌱</div><p>No jobs logged yet.</p></div>`;return;}
+  const g={};fil.forEach(e=>{const d=e.jobDate.slice(0,10);if(!g[d])g[d]=[];g[d].push(e);});
+  const days=Object.keys(g).sort((a,b)=>b.localeCompare(a));
+  c.innerHTML=days.map(day=>`<div class="dg"><div class="dh"><span class="dl">${fmtDate(day+"T12:00:00")}</span><div class="dr"></div></div>${g[day].map(e=>renderEntry(e)).join("")}</div>`).join("");
+}
+
+function renderEntry(e){
+  const cat=getCat(e.category);
+  const ftags=(e.fields||[]).map(f=>{
+    const fd=FIELDS.find(x=>x.name===f);const col=fd?(CC[fd.crop]||"#8B6914"):"#8B6914";
+    return `<span class="mtag" style="color:${col};cursor:pointer" onclick="event.stopPropagation();showTab('fields');showDiary('${f.replace(/'/g,"\\'")}')">📍 ${f}${fd?" ("+fd.acres+"ac)":""}</span>`;
+  }).join("");
+  if(editingId===e.id)return`<div class="entry" id="entry-${e.id}"><div class="ei"><div class="eb"><div class="et"><span class="etitle">${e.title}</span><span class="ecat" style="background:${cat.bg};color:${cat.color}">${e.category}</span></div><div style="margin-top:5px"><textarea rows="2" id="et-${e.id}" style="font-size:12px;width:100%;margin-bottom:4px">${e.description}</textarea><div style="display:flex;gap:6px"><button style="padding:3px 9px;background:var(--gd);color:#fff;border:none;border-radius:4px;font-size:11px;cursor:pointer" onclick="saveEdit('${e.id}')">Save</button><button style="padding:3px 9px;background:#eee;color:#555;border:none;border-radius:4px;font-size:11px;cursor:pointer" onclick="cancelEdit()">Cancel</button></div></div></div></div></div>`;
+  return`<div class="entry" id="entry-${e.id}" style="border-left:4px solid ${cat.color}"><div class="ei"><div class="eb"><div class="et"><span class="etitle">${e.title}</span><span class="ecat" style="background:${cat.bg};color:${cat.color}">${e.category}</span>${e.injected?'<span class="evia">via chat</span>':""}</div><p class="edesc">${e.description}</p><div class="emeta">${ftags}${e.machinery?`<span class="mtag" style="color:#555">🚜 ${e.machinery}</span>`:""}${e.quantity?`<span class="mtag" style="color:#555">📏 ${e.quantity}</span>`:""}<span class="mtime">Logged ${fmtTime(e.loggedAt)}</span></div></div><div class="eact"><button class="abtn" onclick="startEdit('${e.id}')">✏️</button><button class="abtn" onclick="askDel('${e.id}')">🗑️</button></div></div>${confirmDeleteId===e.id?`<div class="cd">Delete?<button class="dcy" onclick="doDel('${e.id}')">Delete</button><button class="dcn" onclick="cancelDel()">Cancel</button></div>`:""}</div>`;
+}
+
+function startEdit(id){editingId=id;renderEntries();document.getElementById("et-"+id)?.focus();}
+function cancelEdit(){editingId=null;renderEntries();}
+async function saveEdit(id){
+  const val=document.getElementById("et-"+id)?.value;if(!val)return;
+  entries=entries.map(e=>e.id===id?{...e,description:val}:e);
+  try{await updateInSupabase(id,val);}catch(e){notify("⚠️ Sync failed");}
+  editingId=null;renderEntries();
+}
+function askDel(id){confirmDeleteId=id;renderEntries();}
+function cancelDel(){confirmDeleteId=null;renderEntries();}
+async function doDel(id){
+  entries=entries.filter(e=>e.id!==id);
+  renderEntries();confirmDeleteId=null;
+  try{await deleteFromSupabase(id);}catch(e){notify("⚠️ Delete sync failed");}
+  notify("🗑️ Deleted");
+  document.getElementById("entry-count").textContent=entries.length+(entries.length===1?" entry":" entries");
+}
+
+function renderFilterBar(){
+  const b=document.getElementById("filter-bar");
+  b.innerHTML=`<span class="fl">Filter:</span>`+["All",...CATS.map(c=>c.label)].map(cat=>{
+    const cs=CATS.find(c=>c.label===cat);const a=filterCat===cat;
+    return`<button class="fb" style="border:${a?`2px solid ${cs?cs.color:"#1C3A1C"}`:"1.5px solid #D8D0BC"};background:${a?(cs?cs.bg:"#E0EDD8"):"#fff"};color:${a?(cs?cs.color:"#1C3A1C"):"#666"};font-weight:${a?"600":"normal"}" onclick="setFilter('${cat}')">${cat}</button>`;
+  }).join("");
+}
+function setFilter(cat){filterCat=cat;renderFilterBar();renderEntries();}
+
+// ── Fields Tab ─────────────────────────────────────────────────────────────
+function showTab(tab){
+  document.getElementById("tab-log").style.display=tab==="log"?"":"none";
+  document.getElementById("tab-fields").style.display=tab==="fields"?"":"none";
+  document.querySelectorAll(".tab").forEach((t,i)=>t.classList.toggle("active",(i===0&&tab==="log")||(i===1&&tab==="fields")));
+  if(tab==="fields")showFieldList();
+}
+function showFieldList(){document.getElementById("fields-view").style.display="";document.getElementById("diary-view").style.display="none";renderFields();}
+function showDiary(name){currentDiary=name;document.getElementById("fields-view").style.display="none";document.getElementById("diary-view").style.display="";renderDiary(name);}
+
+function getNPA(name){
+  const f=FIELDS.find(x=>x.name===name);if(!f)return{N:0,P:0,K:0};
+  let N=0,P=0,K=0;
+  entries.forEach(e=>{if(!(e.fields||[]).includes(name)||!e.nutrient_application)return;const na=e.nutrient_application;N+=(na.N_kg_acre||0);P+=(na.P_kg_acre||0);K+=(na.K_kg_acre||0);});
+  return{N:Math.round(N*10)/10,P:Math.round(P*10)/10,K:Math.round(K*10)/10};
+}
+
+function renderFields(){
+  const c=document.getElementById("fields-view");
+  const g={};FIELDS.forEach(f=>{if(!g[f.crop])g[f.crop]=[];g[f.crop].push(f);});
+  c.innerHTML=CROP_ORDER.filter(cr=>g[cr]).map(crop=>{
+    const fl=g[crop];const tot=fl.reduce((s,f)=>s+f.acres,0).toFixed(1);const col=CC[crop]||"#555";
+    return`<div class="cs"><div class="ch"><span class="ct" style="color:${col}">${crop}</span><span class="cc">${fl.length} fields · ${tot} acres</span><div class="cr"></div></div><div class="fg">${fl.map(f=>{
+      const ap=getNPA(f.name);const tg=TARGETS[f.crop]||{N:0};const pct=tg.N>0?Math.min(100,Math.round(ap.N/tg.N*100)):null;
+      return`<div class="fc" style="border-left:3px solid ${col}" onclick="showDiary('${f.name.replace(/'/g,"\\'")}')">
+        <div class="fn">${f.name}</div><div class="fs">${f.acres} ac · ${f.ha} ha</div>
+        ${pct!==null?`<div style="margin-bottom:4px"><div style="background:#F0EBE0;border-radius:3px;height:5px;overflow:hidden"><div style="width:${pct}%;height:5px;background:${pct>80?"#B0392B":pct>50?"#C4870A":"#3D7A3D"};border-radius:3px"></div></div><div style="font-size:10px;color:${col};margin-top:2px">${pct}% N applied</div></div>`:""}
+        <div class="fi">${f.pH!=null?`<span class="it">pH ${f.pH}</span>`:""}${f.P!=null?`<span class="it">P${f.P}</span>`:""}${f.K!=null?`<span class="it">K${f.K}</span>`:""}${f.Mg!=null?`<span class="it">Mg${f.Mg}</span>`:""}${f.OM!=null?`<span class="it">OM${f.OM}%</span>`:""}</div>
+      </div>`;
+    }).join("")}</div></div>`;
+  }).join("");
+}
+
+function renderDiary(name){
+  const f=FIELDS.find(x=>x.name===name);if(!f)return;
+  const col=CC[f.crop]||"#555";
+  const tg=TARGETS[f.crop]||{N:0,P:0,K:0};
+  const ap=getNPA(name);
+  const pN=tg.N>0?Math.min(100,Math.round(ap.N/tg.N*100)):0;
+  const pP=tg.P>0?Math.min(100,Math.round(ap.P/tg.P*100)):0;
+  const pK=tg.K>0?Math.min(100,Math.round(ap.K/tg.K*100)):0;
+  const bc=p=>p>90?"#B0392B":p>60?"#C4870A":"#3D7A3D";
+  const rem=(a,t)=>Math.max(0,t-a).toFixed(1);
+  const fentries=entries.filter(e=>(e.fields||[]).includes(name)).sort((a,b)=>b.jobDate.localeCompare(a.jobDate));
+  document.getElementById("diary-view").innerHTML=`
+    <div class="dvh"><button class="dvb" onclick="showFieldList()">←</button><div><h2>${name}</h2><div class="dvhc" style="color:${col}">${f.crop} · ${f.acres} ac (${f.ha} ha)</div></div></div>
+    <div class="dvbody">
+      <div class="dgrid">
+        <div class="dc"><h3>Soil Analysis — ${f.sd}</h3>
+          <div class="sg">
+            <div class="si2"><div class="sv" style="color:${f.pH!=null?(f.pH>=6.5?"#2D6A2D":f.pH>=6.0?"#C4870A":"#B0392B"):"#AAA"}">${f.pH??'—'}</div><div class="sl">pH</div></div>
+            <div class="si2"><div class="sv" style="color:${f.P!=null?(f.P>=2?"#2D6A2D":"#C4870A"):"#AAA"}">${f.P??'—'}</div><div class="sl">P Index</div></div>
+            <div class="si2"><div class="sv" style="color:${f.K!=null?(f.K>=2?"#2D6A2D":"#C4870A"):"#AAA"}">${f.K??'—'}</div><div class="sl">K Index</div></div>
+            <div class="si2"><div class="sv" style="color:${f.Mg!=null?(f.Mg>=2?"#2D6A2D":"#C4870A"):"#AAA"}">${f.Mg??'—'}</div><div class="sl">Mg Index</div></div>
+          </div>
+          ${f.OM!=null?`<div style="margin-top:8px;font-size:12px;color:#666">Organic Matter: <strong>${f.OM}%</strong></div>`:""}
+        </div>
+        <div class="dc"><h3>Nutrients Applied — RB209 Target</h3>
+          <div class="nr"><span class="nn">N</span><div class="nbw"><div class="nb" style="width:${pN}%;background:${bc(pN)}"></div></div><span class="nns"><strong>${ap.N}</strong>/${tg.N} kg/ac · ${rem(ap.N,tg.N)} rem</span></div>
+          <div class="nr"><span class="nn">P</span><div class="nbw"><div class="nb" style="width:${pP}%;background:${bc(pP)}"></div></div><span class="nns"><strong>${ap.P}</strong>/${tg.P} kg/ac · ${rem(ap.P,tg.P)} rem</span></div>
+          <div class="nr"><span class="nn">K</span><div class="nbw"><div class="nb" style="width:${pK}%;background:${bc(pK)}"></div></div><span class="nns"><strong>${ap.K}</strong>/${tg.K} kg/ac · ${rem(ap.K,tg.K)} rem</span></div>
+          <div style="margin-top:8px;font-size:10px;color:#AAA">RB209 target for ${f.crop} · Total applied this season</div>
+        </div>
+      </div>
+      <div class="dh2">Job History (${fentries.length})</div>
+      ${fentries.length?fentries.map(e=>{const na=e.nutrient_application;return`<div class="de" style="border-left:3px solid ${getCat(e.category).color}"><div class="det"><span class="ded">${fmtShort(e.jobDate)}</span><span class="detitle">${e.title}</span></div><div class="dedesc">${e.description}</div>${na?`<div class="deq">N: ${na.N_kg_acre||0} · P: ${na.P_kg_acre||0} · K: ${na.K_kg_acre||0} kg/acre</div>`:""}</div>`;}).join(""):`<p class="noh">No jobs logged for this field yet.</p>`}
+    </div>`;
+}
+
+function notify(msg){const el=document.getElementById("notify");el.textContent=msg;el.style.display="block";clearTimeout(el._t);el._t=setTimeout(()=>el.style.display="none",3500);}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init(){
+  renderFilterBar();
+  await loadFromSupabase();
+  if(syncInterval)clearInterval(syncInterval);
+  syncInterval=setInterval(loadFromSupabase,30000); // auto-refresh every 30s
+}
+
+loadSetup();
+init();
+</script>
+</body>
+</html>
