@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC Morning Briefing</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #141416;
+    --bg3: #1a1a1d;
+    --border: #2a2a2e;
+    --border2: #333338;
+    --text: #e8e8ea;
+    --text2: #888890;
+    --text3: #555560;
+    --accent: #f0c040;
+    --bull: #4caf6e;
+    --bull-bg: #0d2418;
+    --bear: #e05252;
+    --bear-bg: #240d0d;
+    --range: #e09040;
+    --range-bg: #241a0d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .app {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-brand { display: flex; flex-direction: column; gap: 4px; }
+  .header-ticker {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px; font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+  }
+  .header-sub {
+    font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text3);
+  }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .date-out {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--text3);
+  }
+  .settings-btn {
+    background: none; border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 10px;
+    color: var(--text2); cursor: pointer; font-size: 13px;
+    transition: all 0.15s;
+  }
+  .settings-btn:hover { border-color: var(--border2); color: var(--text); }
+
+  /* SETTINGS */
+  .settings-panel {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    margin-bottom: 1.5rem; display: none;
+  }
+  .settings-panel.open { display: block; }
+  .settings-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text3); margin-bottom: 10px;
+  }
+  .settings-row { display: flex; gap: 8px; }
+  .api-input {
+    flex: 1; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 12px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    color: var(--text); outline: none;
+  }
+  .api-input:focus { border-color: var(--border2); }
+  .settings-save {
+    padding: 8px 16px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); font-size: 12px; cursor: pointer;
+    white-space: nowrap; transition: all 0.15s;
+  }
+  .settings-save:hover { border-color: var(--accent); color: var(--accent); }
+  .settings-note { font-size: 11px; color: var(--text3); margin-top: 8px; }
+  .key-ok { font-size: 11px; color: var(--bull); margin-top: 6px; display: none; }
+
+  /* NO KEY BANNER */
+  .no-key-banner {
+    background: var(--range-bg); border: 1px solid var(--range);
+    border-radius: 8px; padding: 10px 14px;
+    display: none; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem; gap: 12px;
+  }
+  .no-key-banner.show { display: flex; }
+  .no-key-text { font-size: 12px; color: var(--range); }
+  .no-key-btn {
+    font-size: 11px; font-weight: 500; padding: 4px 12px;
+    background: none; border: 1px solid var(--range);
+    border-radius: 5px; color: var(--range); cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 0; margin-bottom: 1.5rem;
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .tab-btn {
+    flex: 1; padding: 9px; font-size: 12px; font-weight: 500;
+    background: none; border: none; cursor: pointer;
+    color: var(--text2); font-family: 'IBM Plex Sans', sans-serif;
+    transition: all 0.12s;
+  }
+  .tab-btn.active { background: var(--bg3); color: var(--text); }
+  .tab-btn:not(:last-child) { border-right: 1px solid var(--border); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* UPLOAD */
+  .upload-zone {
+    border: 1px dashed var(--border2);
+    border-radius: 12px; padding: 3rem 1.5rem;
+    text-align: center; cursor: pointer;
+    transition: all 0.15s; margin-bottom: 1.25rem;
+    background: var(--bg2);
+  }
+  .upload-zone:hover, .upload-zone.drag {
+    border-color: var(--accent); background: #1a1a0d;
+  }
+  .upload-icon { font-size: 32px; margin-bottom: 10px; opacity: 0.4; }
+  .upload-title { font-size: 14px; color: var(--text2); margin-bottom: 4px; }
+  .upload-sub { font-size: 11px; color: var(--text3); }
+  .browse-btn {
+    display: inline-block; margin-top: 14px; padding: 8px 18px;
+    font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border2); border-radius: 6px;
+    cursor: pointer; color: var(--text2); background: var(--bg3);
+    transition: all 0.15s;
+  }
+  .browse-btn:hover { border-color: var(--text2); color: var(--text); }
+
+  /* PREVIEW */
+  .preview-wrap { position: relative; margin-bottom: 1rem; }
+  .preview-wrap img {
+    width: 100%; border-radius: 10px;
+    border: 1px solid var(--border); display: block;
+  }
+  .preview-clear {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 10px;
+    font-size: 11px; cursor: pointer; color: var(--text2);
+    transition: all 0.12s;
+  }
+  .preview-clear:hover { color: var(--bear); border-color: var(--bear); }
+
+  .analyse-btn {
+    width: 100%; padding: 12px; font-size: 13px; font-weight: 500;
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: 8px; cursor: pointer; color: var(--text);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin-bottom: 1.5rem; transition: all 0.15s;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .analyse-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .analyse-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ERROR */
+  .error-box {
+    background: var(--bear-bg); border: 1px solid var(--bear);
+    border-radius: 8px; padding: 10px 14px;
+    font-size: 12px; color: var(--bear);
+    margin-bottom: 1.25rem; display: none;
+  }
+
+  /* RESULTS */
+  .results { display: none; flex-direction: column; gap: 1rem; }
+  .results.show { display: flex; }
+
+  /* TF CARDS */
+  .tf-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .tf-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  .tf-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--text2);
+  }
+  .tf-ema { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+  .bias-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 500;
+    padding: 4px 12px; border-radius: 100px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .bull { background: var(--bull-bg); color: var(--bull); border: 1px solid #1a4030; }
+  .bear { background: var(--bear-bg); color: var(--bear); border: 1px solid #401a1a; }
+  .range { background: var(--range-bg); color: var(--range); border: 1px solid #40280a; }
+  .neutral { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+
+  .tf-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .row-lbl {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); margin-bottom: 3px;
+  }
+  .row-val { font-size: 13px; color: var(--text); line-height: 1.55; }
+  .divider { height: 1px; background: var(--border); }
+
+  .levels-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 2px; }
+  .level-item { background: var(--bg3); border-radius: 6px; padding: 7px 10px; }
+  .level-type { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+  .level-val { font-size: 12px; font-family: 'IBM Plex Mono', monospace; font-weight: 500; margin-top: 1px; }
+  .level-val.s { color: var(--bear); }
+  .level-val.d { color: var(--bull); }
+  .level-val.l { color: var(--range); }
+
+  /* SUMMARY */
+  .summary-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .summary-title {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); margin-bottom: 8px;
+  }
+  .summary-text { font-size: 13px; color: var(--text); line-height: 1.65; }
+
+  /* TRADE IDEA */
+  .idea-card {
+    border-radius: 12px; padding: 16px;
+    border: 1px solid var(--border);
+  }
+  .idea-card.long { border-left: 3px solid var(--bull); background: var(--bull-bg); }
+  .idea-card.short { border-left: 3px solid var(--bear); background: var(--bear-bg); }
+  .idea-card.wait { border-left: 3px solid var(--range); background: var(--range-bg); }
+  .idea-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); margin-bottom: 6px;
+  }
+  .idea-text { font-size: 13px; color: var(--text); line-height: 1.65; }
+
+  /* NOTES */
+  .notes-wrap { margin-top: 0; }
+  .notes-lbl {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text3); margin-bottom: 6px;
+  }
+  .notes-input {
+    width: 100%; padding: 10px 12px; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg2); color: var(--text);
+    resize: vertical; min-height: 72px;
+    font-family: 'IBM Plex Sans', sans-serif; outline: none;
+  }
+  .notes-input:focus { border-color: var(--border2); }
+  .save-btn {
+    width: 100%; padding: 10px; font-size: 12px; font-weight: 500;
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; color: var(--text2);
+    margin-top: 8px; transition: all 0.15s;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .save-btn:hover { border-color: var(--bull); color: var(--bull); }
+  .save-btn.saved { border-color: var(--bull); color: var(--bull); }
+
+  .reset-link {
+    font-size: 12px; color: var(--text3); border: none; background: none;
+    cursor: pointer; text-decoration: underline; text-align: center;
+    width: 100%; padding: 6px; display: block; margin-top: 4px;
+  }
+  .reset-link:hover { color: var(--text2); }
+
+  /* LOG */
+  .log-empty { text-align: center; padding: 3rem 1rem; }
+  .log-empty-icon { font-size: 32px; opacity: 0.3; margin-bottom: 10px; }
+  .log-empty-text { font-size: 13px; color: var(--text3); }
+
+  .log-list { display: flex; flex-direction: column; gap: 8px; }
+  .log-entry { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .log-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; background: var(--bg2); cursor: pointer;
+    transition: background 0.12s;
+  }
+  .log-hdr:hover { background: var(--bg3); }
+  .log-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; font-weight: 500; color: var(--text);
+  }
+  .log-pills { display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap; }
+  .log-right { display: flex; align-items: center; gap: 8px; }
+  .log-dir {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; font-weight: 500;
+    padding: 3px 10px; border-radius: 100px; text-transform: uppercase;
+  }
+  .log-dir.long { background: var(--bull-bg); color: var(--bull); border: 1px solid #1a4030; }
+  .log-dir.short { background: var(--bear-bg); color: var(--bear); border: 1px solid #401a1a; }
+  .log-dir.wait { background: var(--range-bg); color: var(--range); border: 1px solid #40280a; }
+  .log-chev { color: var(--text3); font-size: 14px; transition: transform 0.2s; }
+  .log-chev.open { transform: rotate(180deg); }
+
+  .log-body { display: none; padding: 14px; border-top: 1px solid var(--border); }
+  .log-body.open { display: block; }
+  .log-sec { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 4px; margin-top: 12px; }
+  .log-sec:first-child { margin-top: 0; }
+  .log-txt { font-size: 12px; color: var(--text); line-height: 1.55; }
+  .log-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .log-levels { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .log-lv { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .log-lv.s { color: var(--bear); }
+  .log-lv.d { color: var(--bull); }
+  .log-notes { font-size: 12px; color: var(--text2); font-style: italic; line-height: 1.5; }
+  .log-del {
+    font-size: 11px; color: var(--text3); border: none; background: none;
+    cursor: pointer; padding: 4px; margin-top: 12px; display: block;
+    text-align: right; width: 100%;
+  }
+  .log-del:hover { color: var(--bear); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-ticker">BTC / USD</div>
+      <div class="header-sub">Morning Briefing</div>
+    </div>
+    <div class="header-right">
+      <div class="date-out" id="date-out"></div>
+      <button class="settings-btn" id="settings-toggle">⚙ API Key</button>
+    </div>
+  </div>
+
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-label">Anthropic API Key</div>
+    <div class="settings-row">
+      <input class="api-input" type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off" />
+      <button class="settings-save" id="settings-save">Save</button>
+    </div>
+    <div class="settings-note">Stored in your browser only. Only used to call the Anthropic API.</div>
+    <div class="key-ok" id="key-ok">✓ Key saved</div>
+  </div>
+
+  <div class="no-key-banner" id="no-key-banner">
+    <span class="no-key-text">No API key set — add yours to start analysing charts.</span>
+    <button class="no-key-btn" onclick="openSettings()">Add key →</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="analyse">Analyse</button>
+    <button class="tab-btn" data-tab="log">Log <span id="log-count"></span></button>
+  </div>
+
+  <!-- ANALYSE TAB -->
+  <div class="tab-panel active" id="tab-analyse">
+
+    <div id="upload-section">
+      <div class="upload-zone" id="drop-zone">
+        <div class="upload-icon">📈</div>
+        <div class="upload-title">Paste your TradingView screenshot (Ctrl+V / Cmd+V)</div>
+        <div class="upload-sub">30m · 4H · Daily layout</div>
+        <label class="browse-btn">↑ Browse file<input type="file" id="file-input" accept="image/*" style="display:none"></label>
+      </div>
+    </div>
+
+    <div id="preview-section" style="display:none">
+      <div class="preview-wrap">
+        <img id="preview-img" src="" alt="Chart" />
+        <button class="preview-clear" id="clear-btn">✕ clear</button>
+      </div>
+      <button class="analyse-btn" id="analyse-btn">Analyse chart →</button>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+
+    <div class="results" id="results">
+
+      <div class="tf-card">
+        <div class="tf-header">
+          <div><div class="tf-label">Daily — HTF</div><div class="tf-ema">EMAs: Weekly 12/25</div></div>
+          <span class="bias-pill neutral" id="bias-daily">—</span>
+        </div>
+        <div class="tf-body">
+          <div><div class="row-lbl">Market structure</div><div class="row-val" id="struct-daily">—</div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">EMA context</div><div class="row-val" id="ema-daily">—</div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">Supply / demand zones</div><div class="levels-grid" id="levels-daily"></div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">RSI / momentum</div><div class="row-val" id="rsi-daily">—</div></div>
+        </div>
+      </div>
+
+      <div class="tf-card">
+        <div class="tf-header">
+          <div><div class="tf-label">4H — MTF</div><div class="tf-ema">EMAs: Daily 12/25</div></div>
+          <span class="bias-pill neutral" id="bias-4h">—</span>
+        </div>
+        <div class="tf-body">
+          <div><div class="row-lbl">Market structure</div><div class="row-val" id="struct-4h">—</div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">EMA context</div><div class="row-val" id="ema-4h">—</div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">Supply / demand zones</div><div class="levels-grid" id="levels-4h"></div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">RSI / momentum</div><div class="row-val" id="rsi-4h">—</div></div>
+        </div>
+      </div>
+
+      <div class="tf-card">
+        <div class="tf-header">
+          <div><div class="tf-label">30m — LTF</div><div class="tf-ema">EMAs: 4H 12/25</div></div>
+          <span class="bias-pill neutral" id="bias-30m">—</span>
+        </div>
+        <div class="tf-body">
+          <div><div class="row-lbl">Market structure</div><div class="row-val" id="struct-30m">—</div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">EMA context</div><div class="row-val" id="ema-30m">—</div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">Zones & liquidity</div><div class="levels-grid" id="levels-30m"></div></div>
+          <div class="divider"></div>
+          <div><div class="row-lbl">RSI / momentum</div><div class="row-val" id="rsi-30m">—</div></div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-title">Overall bias</div>
+        <div class="summary-text" id="overall-bias">—</div>
+      </div>
+
+      <div class="idea-card wait" id="idea-card">
+        <div class="idea-label" id="idea-label">Where to look</div>
+        <div class="idea-text" id="idea-text">—</div>
+      </div>
+
+      <div class="notes-wrap">
+        <div class="notes-lbl">Notes for today</div>
+        <textarea class="notes-input" id="notes-input" placeholder="Macro context, key news, gut feel..."></textarea>
+        <button class="save-btn" id="save-btn">💾 Save to log</button>
+      </div>
+
+      <button class="reset-link" id="reset-btn">↑ Upload a new chart</button>
+    </div>
+  </div>
+
+  <!-- LOG TAB -->
+  <div class="tab-panel" id="tab-log">
+    <div class="log-empty" id="log-empty">
+      <div class="log-empty-icon">📓</div>
+      <div class="log-empty-text">No entries yet. Analyse a chart and save it to start your log.</div>
+    </div>
+    <div class="log-list" id="log-list"></div>
+  </div>
+
+</div>
+
+<script>
+const SYSTEM = `You are an expert BTC futures trader. You analyse TradingView screenshots using a top-down framework. The layout always has three panels: 30-minute (left), 4H (middle), Daily (right).
+
+EMA mapping:
+- 30m chart shows 4H 12/25 EMAs
+- 4H chart shows Daily 12/25 EMAs
+- Daily chart shows Weekly 12/25 EMAs
+
+Framework rules:
+- EMAs crossed red, price making new lows = DOWNTREND → focus shorts
+- EMAs choppy/intertwined = RANGE → short highs, long lows
+- EMAs green with large gap = UPTREND → focus longs
+- Weekly uptrend + daily range = re-accumulation (expect break higher)
+- Weekly downtrend + daily range = distribution (expect fake breakout then rollover)
+
+Supply zones: consolidation before fast move down → short retests
+Demand zones: consolidation before fast move up → long retests
+Liquidity (Liq labels on chart) = stop clusters, price sweeps before reversing
+Highest probability setups = zone + S/R + range boundary confluence
+
+Look carefully at all visible price labels, Liq markers, zone shading, D IMB labels, and EMA ribbon colours. Be specific with price levels where visible.
+
+Respond ONLY with valid JSON, no markdown, no extra text:
+{"daily":{"bias":"BULL|BEAR|RANGE|NEUTRAL","structure":"one sentence","ema_context":"one sentence","supply_zones":["level + note"],"demand_zones":["level + note"],"liquidity":["level"],"rsi":"one sentence"},"htf_4h":{"bias":"BULL|BEAR|RANGE|NEUTRAL","structure":"one sentence","ema_context":"one sentence","supply_zones":["level + note"],"demand_zones":["level + note"],"liquidity":["level"],"rsi":"one sentence"},"ltf_30m":{"bias":"BULL|BEAR|RANGE|NEUTRAL","structure":"one sentence","ema_context":"one sentence","supply_zones":["level + note"],"demand_zones":["level + note"],"liquidity":["level"],"rsi":"one sentence"},"overall_bias":"2-3 sentences","trade_idea":"LONG|SHORT|WAIT","trade_detail":"2-3 sentences on where to look, which levels, what confirmation"}`;
+
+const LOG_KEY = 'btc_log_v1';
+const API_KEY = 'btc_apikey';
+let imgBase64 = null, lastParsed = null;
+
+document.getElementById('date-out').textContent = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+const getKey = () => localStorage.getItem(API_KEY)||'';
+const getLog = () => { try { return JSON.parse(localStorage.getItem(LOG_KEY)||'[]'); } catch { return []; } };
+const setLog = d => localStorage.setItem(LOG_KEY, JSON.stringify(d));
+
+function checkBanner() {
+  document.getElementById('no-key-banner').classList.toggle('show', !getKey());
+}
+function openSettings() {
+  document.getElementById('settings-panel').classList.add('open');
+  document.getElementById('api-key-input').value = getKey();
+  document.getElementById('api-key-input').focus();
+}
+
+document.getElementById('settings-toggle').addEventListener('click', () => {
+  const p = document.getElementById('settings-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) {
+    document.getElementById('api-key-input').value = getKey();
+    document.getElementById('api-key-input').focus();
+  }
+});
+document.getElementById('settings-save').addEventListener('click', () => {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (!k) return;
+  localStorage.setItem(API_KEY, k);
+  document.getElementById('key-ok').style.display = 'block';
+  checkBanner();
+  setTimeout(() => {
+    document.getElementById('key-ok').style.display = 'none';
+    document.getElementById('settings-panel').classList.remove('open');
+  }, 1500);
+});
+document.getElementById('api-key-input').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('settings-save').click(); });
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab==='log') renderLog();
+  });
+});
+
+function loadImg(dataUrl) {
+  imgBase64 = dataUrl.split(',')[1];
+  document.getElementById('preview-img').src = dataUrl;
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('preview-section').style.display = 'block';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('error-box').style.display = 'none';
+}
+
+document.getElementById('file-input').addEventListener('change', e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = ev => loadImg(ev.target.result); r.readAsDataURL(f);
+});
+
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (!f||!f.type.startsWith('image/')) return;
+  const r = new FileReader(); r.onload = ev => loadImg(ev.target.result); r.readAsDataURL(f);
+});
+
+document.addEventListener('paste', e => {
+  const items = e.clipboardData?.items; if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const f = item.getAsFile();
+      const r = new FileReader(); r.onload = ev => loadImg(ev.target.result); r.readAsDataURL(f);
+      break;
+    }
+  }
+});
+
+document.getElementById('clear-btn').addEventListener('click', reset);
+document.getElementById('reset-btn').addEventListener('click', reset);
+function reset() {
+  imgBase64 = null; lastParsed = null;
+  document.getElementById('preview-img').src = '';
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('preview-section').style.display = 'none';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('file-input').value = '';
+  document.getElementById('notes-input').value = '';
+  const sb = document.getElementById('save-btn');
+  sb.classList.remove('saved'); sb.textContent = '💾 Save to log';
+}
+
+function setBias(id, bias) {
+  const el = document.getElementById(id);
+  el.textContent = bias||'—';
+  el.className = 'bias-pill';
+  if (bias==='BULL') el.classList.add('bull');
+  else if (bias==='BEAR') el.classList.add('bear');
+  else if (bias==='RANGE') el.classList.add('range');
+  else el.classList.add('neutral');
+}
+
+function buildLevels(id, supply, demand, liq) {
+  const el = document.getElementById(id); el.innerHTML = '';
+  (supply||[]).forEach(s => el.innerHTML+=`<div class="level-item"><div class="level-type">Supply</div><div class="level-val s">${s}</div></div>`);
+  (demand||[]).forEach(d => el.innerHTML+=`<div class="level-item"><div class="level-type">Demand</div><div class="level-val d">${d}</div></div>`);
+  (liq||[]).forEach(l => el.innerHTML+=`<div class="level-item"><div class="level-type">Liquidity</div><div class="level-val l">${l}</div></div>`);
+  if (!el.children.length) el.innerHTML='<div style="font-size:12px;color:var(--text3);grid-column:1/-1">None identified</div>';
+}
+
+function setIdea(idea, detail) {
+  const card = document.getElementById('idea-card');
+  card.className = 'idea-card';
+  if (idea==='LONG') { card.classList.add('long'); document.getElementById('idea-label').textContent = '📈 Look for longs'; }
+  else if (idea==='SHORT') { card.classList.add('short'); document.getElementById('idea-label').textContent = '📉 Look for shorts'; }
+  else { card.classList.add('wait'); document.getElementById('idea-label').textContent = '⏳ Wait for setup'; }
+  document.getElementById('idea-text').textContent = detail||'—';
+}
+
+document.getElementById('analyse-btn').addEventListener('click', async () => {
+  if (!imgBase64) return;
+  const key = getKey();
+  if (!key) { openSettings(); return; }
+
+  const btn = document.getElementById('analyse-btn');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Analysing...';
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('results').classList.remove('show');
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        system: SYSTEM,
+        messages: [{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/png',data:imgBase64}},
+          {type:'text',text:'Analyse this TradingView screenshot. Return only the JSON.'}
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error?.message||`HTTP ${resp.status}`);
+    const raw = data.content.map(b=>b.text||'').join('');
+    lastParsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const p = lastParsed;
+
+    setBias('bias-daily', p.daily?.bias); document.getElementById('struct-daily').textContent=p.daily?.structure||'—'; document.getElementById('ema-daily').textContent=p.daily?.ema_context||'—'; buildLevels('levels-daily',p.daily?.supply_zones,p.daily?.demand_zones,p.daily?.liquidity); document.getElementById('rsi-daily').textContent=p.daily?.rsi||'—';
+    setBias('bias-4h', p.htf_4h?.bias); document.getElementById('struct-4h').textContent=p.htf_4h?.structure||'—'; document.getElementById('ema-4h').textContent=p.htf_4h?.ema_context||'—'; buildLevels('levels-4h',p.htf_4h?.supply_zones,p.htf_4h?.demand_zones,p.htf_4h?.liquidity); document.getElementById('rsi-4h').textContent=p.htf_4h?.rsi||'—';
+    setBias('bias-30m', p.ltf_30m?.bias); document.getElementById('struct-30m').textContent=p.ltf_30m?.structure||'—'; document.getElementById('ema-30m').textContent=p.ltf_30m?.ema_context||'—'; buildLevels('levels-30m',p.ltf_30m?.supply_zones,p.ltf_30m?.demand_zones,p.ltf_30m?.liquidity); document.getElementById('rsi-30m').textContent=p.ltf_30m?.rsi||'—';
+    document.getElementById('overall-bias').textContent=p.overall_bias||'—';
+    setIdea(p.trade_idea, p.trade_detail);
+
+    const sb = document.getElementById('save-btn');
+    sb.classList.remove('saved'); sb.textContent = '💾 Save to log';
+    document.getElementById('results').classList.add('show');
+  } catch(err) {
+    const eb = document.getElementById('error-box');
+    eb.textContent = err.message.includes('401') ? 'Invalid API key — check settings.' : 'Error: ' + err.message;
+    eb.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Analyse chart →';
+  }
+});
+
+document.getElementById('save-btn').addEventListener('click', () => {
+  if (!lastParsed) return;
+  const p = lastParsed;
+  const entry = {
+    id: Date.now(),
+    dateLabel: new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}),
+    daily_bias:p.daily?.bias, htf_bias:p.htf_4h?.bias, ltf_bias:p.ltf_30m?.bias,
+    trade_idea:p.trade_idea, overall_bias:p.overall_bias, trade_detail:p.trade_detail,
+    daily_struct:p.daily?.structure, htf_struct:p.htf_4h?.structure, ltf_struct:p.ltf_30m?.structure,
+    daily_ema:p.daily?.ema_context, htf_ema:p.htf_4h?.ema_context, ltf_ema:p.ltf_30m?.ema_context,
+    daily_rsi:p.daily?.rsi, htf_rsi:p.htf_4h?.rsi, ltf_rsi:p.ltf_30m?.rsi,
+    daily_supply:p.daily?.supply_zones, daily_demand:p.daily?.demand_zones,
+    htf_supply:p.htf_4h?.supply_zones, htf_demand:p.htf_4h?.demand_zones,
+    ltf_supply:p.ltf_30m?.supply_zones, ltf_demand:p.ltf_30m?.demand_zones,
+    notes: document.getElementById('notes-input').value.trim()
+  };
+  const log = getLog(); log.unshift(entry); setLog(log);
+  updateCount();
+  const sb = document.getElementById('save-btn');
+  sb.classList.add('saved'); sb.textContent = '✓ Saved';
+});
+
+function updateCount() {
+  const n = getLog().length;
+  document.getElementById('log-count').textContent = n>0?`(${n})`:'';
+}
+
+function pillHtml(b) {
+  const cls = b==='BULL'?'bull':b==='BEAR'?'bear':b==='RANGE'?'range':'neutral';
+  return `<span class="bias-pill ${cls}" style="font-size:10px;padding:2px 8px">${b||'—'}</span>`;
+}
+function dirHtml(idea) {
+  const cls = idea==='LONG'?'long':idea==='SHORT'?'short':'wait';
+  return `<span class="log-dir ${cls}">${idea||'—'}</span>`;
+}
+function lvHtml(supply, demand) {
+  let h='';
+  (supply||[]).forEach(s=>h+=`<span class="log-lv s">▼ ${s}</span>`);
+  (demand||[]).forEach(d=>h+=`<span class="log-lv d">▲ ${d}</span>`);
+  return h||`<span style="font-size:11px;color:var(--text3)">none</span>`;
+}
+
+function renderLog() {
+  const log = getLog();
+  document.getElementById('log-empty').style.display = log.length?'none':'block';
+  document.getElementById('log-list').innerHTML = log.map(e=>`
+    <div class="log-entry">
+      <div class="log-hdr" onclick="toggleLog(${e.id})">
+        <div>
+          <div class="log-date">${e.dateLabel}</div>
+          <div class="log-pills">${pillHtml(e.daily_bias)}${pillHtml(e.htf_bias)}${pillHtml(e.ltf_bias)}</div>
+        </div>
+        <div class="log-right">${dirHtml(e.trade_idea)}<span class="log-chev" id="chev-${e.id}">▾</span></div>
+      </div>
+      <div class="log-body" id="body-${e.id}">
+        <div class="log-sec">Overall bias</div><div class="log-txt">${e.overall_bias||'—'}</div>
+        <div class="log-sec">Where to look</div><div class="log-txt">${e.trade_detail||'—'}</div>
+        <div class="log-sec">Daily</div>
+        <div class="log-txt">${e.daily_struct||'—'}</div>
+        <div class="log-sub">${e.daily_ema||''}</div>
+        <div class="log-levels">${lvHtml(e.daily_supply,e.daily_demand)}</div>
+        <div class="log-sub">${e.daily_rsi||''}</div>
+        <div class="log-sec">4H</div>
+        <div class="log-txt">${e.htf_struct||'—'}</div>
+        <div class="log-sub">${e.htf_ema||''}</div>
+        <div class="log-levels">${lvHtml(e.htf_supply,e.htf_demand)}</div>
+        <div class="log-sub">${e.htf_rsi||''}</div>
+        <div class="log-sec">30m</div>
+        <div class="log-txt">${e.ltf_struct||'—'}</div>
+        <div class="log-sub">${e.ltf_ema||''}</div>
+        <div class="log-levels">${lvHtml(e.ltf_supply,e.ltf_demand)}</div>
+        <div class="log-sub">${e.ltf_rsi||''}</div>
+        ${e.notes?`<div class="log-sec">Notes</div><div class="log-notes">${e.notes}</div>`:''}
+        <button class="log-del" onclick="delLog(${e.id})">🗑 delete</button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleLog(id) {
+  const b = document.getElementById('body-'+id);
+  const c = document.getElementById('chev-'+id);
+  const open = b.classList.toggle('open');
+  if (c) c.style.transform = open?'rotate(180deg)':'';
+}
+function delLog(id) {
+  setLog(getLog().filter(e=>e.id!==id));
+  updateCount(); renderLog();
+}
+
+checkBanner(); updateCount(); renderLog();
+</script>
+</body>
+</html>
