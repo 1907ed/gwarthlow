@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heifer Ration Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--gd:#1C3A1C;--gm:#2D5A2D;--gl:#A0B89A;--gold:#8B6914;--goldf:#F0E8C8;--cream:#F7F4EE;--cm:#EDE8DF;--border:#D8D0BC;--text:#2A2A2A;--muted:#888;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--text);min-height:100vh;padding:16px;}
+.container{max-width:600px;margin:0 auto;}
+h1{font-family:'Playfair Display',serif;font-size:24px;color:var(--gd);margin-bottom:4px;}
+.sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+.card h2{font-size:13px;font-weight:700;color:var(--gd);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;}
+label{font-size:11px;color:var(--muted);display:block;margin-bottom:3px;}
+input,select{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:14px;font-family:'Source Serif 4',serif;margin-bottom:10px;background:#fff;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+button{padding:10px 20px;background:var(--gd);color:var(--goldf);border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Source Serif 4',serif;width:100%;}
+.result{background:var(--goldf);border-radius:8px;padding:14px;margin-top:14px;display:none;}
+.result-row{display:flex;justify-content:space-between;padding:5px 0;font-size:14px;border-bottom:1px solid rgba(139,105,20,.15);}
+.result-row:last-child{border-bottom:none;}
+.result-row .val{font-weight:700;color:var(--gd);}
+.status{padding:10px;border-radius:6px;margin-top:10px;font-size:13px;text-align:center;font-weight:600;}
+.status.good{background:#DDF0DD;color:#2D6A2D;}
+.status.low{background:#FBF0D8;color:#8B6914;}
+.status.high{background:#F8E0DC;color:#B0392B;}
+.feed-info{font-size:11px;color:var(--muted);margin-top:-6px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>🐄 Heifer Ration Calculator</h1>
+<div class="sub">Simple dairy heifer / youngstock ration balancer — Gwarthlow Farm</div>
+
+<div class="card">
+<h2>Animal Details</h2>
+<div class="row">
+<div>
+<label>Liveweight (kg)</label>
+<input type="number" id="weight" placeholder="300" value="300" oninput="calc()"/>
+</div>
+<div>
+<label>Target daily gain (kg/day)</label>
+<input type="number" id="dlwg" placeholder="0.8" value="0.8" step="0.1" oninput="calc()"/>
+</div>
+</div>
+<label>Number of heifers in group</label>
+<input type="number" id="numHeifers" placeholder="20" value="20" oninput="calc()"/>
+</div>
+
+<div class="card">
+<h2>Forages & Feeds Available</h2>
+
+<label>First cut grass silage</label>
+<div class="feed-info">Quality forage base — high D value</div>
+<div class="row3">
+<div><label>DM %</label><input type="number" id="sil_dm" value="30" oninput="calc()"/></div>
+<div><label>ME (MJ/kg DM)</label><input type="number" id="sil_me" value="11" step="0.1" oninput="calc()"/></div>
+<div><label>CP %</label><input type="number" id="sil_cp" value="14" oninput="calc()"/></div>
+</div>
+
+<label>Late-cut meadow hay</label>
+<div class="feed-info">SFS late-cut — fibre source, lower quality</div>
+<div class="row3">
+<div><label>DM %</label><input type="number" id="hay_dm" value="85" oninput="calc()"/></div>
+<div><label>ME (MJ/kg DM)</label><input type="number" id="hay_me" value="8.5" step="0.1" oninput="calc()"/></div>
+<div><label>CP %</label><input type="number" id="hay_cp" value="9" oninput="calc()"/></div>
+</div>
+
+<label>Concentrate / rearing pellets</label>
+<div class="feed-info">Balances protein and energy</div>
+<div class="row3">
+<div><label>DM %</label><input type="number" id="conc_dm" value="88" oninput="calc()"/></div>
+<div><label>ME (MJ/kg DM)</label><input type="number" id="conc_me" value="12.5" step="0.1" oninput="calc()"/></div>
+<div><label>CP %</label><input type="number" id="conc_cp" value="16" oninput="calc()"/></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Ration (fresh weight kg/head/day)</h2>
+<div class="row3">
+<div><label>Silage (kg)</label><input type="number" id="sil_amt" value="12" step="0.5" oninput="calc()"/></div>
+<div><label>Hay (kg)</label><input type="number" id="hay_amt" value="1.5" step="0.5" oninput="calc()"/></div>
+<div><label>Pellets (kg)</label><input type="number" id="conc_amt" value="1.5" step="0.25" oninput="calc()"/></div>
+</div>
+<button onclick="calc()">Calculate Ration</button>
+
+<div class="result" id="result">
+<div class="result-row"><span>Total DM intake</span><span class="val" id="r-dm"></span></div>
+<div class="result-row"><span>Target DM intake</span><span class="val" id="r-dm-target"></span></div>
+<div class="result-row"><span>Total ME supplied</span><span class="val" id="r-me"></span></div>
+<div class="result-row"><span>ME required</span><span class="val" id="r-me-req"></span></div>
+<div class="result-row"><span>Crude protein</span><span class="val" id="r-cp"></span></div>
+<div class="result-row"><span>CP required</span><span class="val" id="r-cp-req"></span></div>
+<div class="result-row"><span>Daily feed cost/head</span><span class="val" id="r-cost"></span></div>
+<div class="result-row"><span>Group daily cost</span><span class="val" id="r-group-cost"></span></div>
+<div id="status-me" class="status"></div>
+<div id="status-cp" class="status"></div>
+</div>
+</div>
+
+<div class="card">
+<h2>Feed Prices (optional, £/tonne fresh)</h2>
+<div class="row3">
+<div><label>Silage</label><input type="number" id="sil_price" value="35" oninput="calc()"/></div>
+<div><label>Hay</label><input type="number" id="hay_price" value="60" oninput="calc()"/></div>
+<div><label>Pellets</label><input type="number" id="conc_price" value="320" oninput="calc()"/></div>
+</div>
+</div>
+
+</div>
+
+<script>
+function calc(){
+  const weight = parseFloat(document.getElementById('weight').value)||300;
+  const dlwg = parseFloat(document.getElementById('dlwg').value)||0.8;
+  const numHeifers = parseFloat(document.getElementById('numHeifers').value)||1;
+
+  // Feed compositions
+  const feeds = {
+    sil: {dm:parseFloat(document.getElementById('sil_dm').value)/100, me:parseFloat(document.getElementById('sil_me').value), cp:parseFloat(document.getElementById('sil_cp').value)/100, amt:parseFloat(document.getElementById('sil_amt').value)||0, price:parseFloat(document.getElementById('sil_price').value)||0},
+    hay: {dm:parseFloat(document.getElementById('hay_dm').value)/100, me:parseFloat(document.getElementById('hay_me').value), cp:parseFloat(document.getElementById('hay_cp').value)/100, amt:parseFloat(document.getElementById('hay_amt').value)||0, price:parseFloat(document.getElementById('hay_price').value)||0},
+    conc:{dm:parseFloat(document.getElementById('conc_dm').value)/100, me:parseFloat(document.getElementById('conc_me').value), cp:parseFloat(document.getElementById('conc_cp').value)/100, amt:parseFloat(document.getElementById('conc_amt').value)||0, price:parseFloat(document.getElementById('conc_price').value)||0}
+  };
+
+  // Calculate DM, ME, CP supplied
+  let totalDM=0, totalME=0, totalCP=0, totalCost=0;
+  for(let k in feeds){
+    const f = feeds[k];
+    const dmKg = f.amt * f.dm;
+    totalDM += dmKg;
+    totalME += dmKg * f.me;
+    totalCP += dmKg * f.cp;
+    totalCost += (f.amt/1000) * f.price;
+  }
+  const cpPct = totalDM>0 ? (totalCP/totalDM)*100 : 0;
+
+  // Requirements for growing heifer (approximate)
+  // DM intake target: ~2.2-2.5% of bodyweight
+  const dmTarget = weight * 0.024;
+  // ME requirement: maintenance (0.5 x W^0.75) + growth (dlwg dependent)
+  const meMaint = 0.5 * Math.pow(weight, 0.75);
+  const meGrowth = dlwg * (weight < 300 ? 22 : weight < 450 ? 28 : 34);
+  const meReq = meMaint + meGrowth;
+  // CP requirement: roughly 13-15% of DM for growing heifers
+  const cpReq = dmTarget * 0.14;
+  const cpReqPct = 14;
+
+  // Display
+  document.getElementById('result').style.display='block';
+  document.getElementById('r-dm').textContent = totalDM.toFixed(1)+' kg';
+  document.getElementById('r-dm-target').textContent = dmTarget.toFixed(1)+' kg';
+  document.getElementById('r-me').textContent = totalME.toFixed(0)+' MJ';
+  document.getElementById('r-me-req').textContent = meReq.toFixed(0)+' MJ';
+  document.getElementById('r-cp').textContent = cpPct.toFixed(1)+'%';
+  document.getElementById('r-cp-req').textContent = cpReqPct+'%';
+  document.getElementById('r-cost').textContent = '£'+totalCost.toFixed(2);
+  document.getElementById('r-group-cost').textContent = '£'+(totalCost*numHeifers).toFixed(2);
+
+  // ME status
+  const meStatus = document.getElementById('status-me');
+  const meDiff = totalME - meReq;
+  if(Math.abs(meDiff) <= meReq*0.05){ meStatus.className='status good'; meStatus.textContent='✅ Energy (ME) balanced for '+dlwg+' kg/day gain'; }
+  else if(meDiff < 0){ meStatus.className='status low'; meStatus.textContent='⚠️ Energy short by '+Math.abs(meDiff).toFixed(0)+' MJ — gain will be below target'; }
+  else { meStatus.className='status high'; meStatus.textContent='⚠️ Energy surplus of '+meDiff.toFixed(0)+' MJ — could over-fatten or reduce concentrate'; }
+
+  // CP status
+  const cpStatus = document.getElementById('status-cp');
+  if(cpPct >= 13 && cpPct <= 16){ cpStatus.className='status good'; cpStatus.textContent='✅ Protein adequate at '+cpPct.toFixed(1)+'%'; }
+  else if(cpPct < 13){ cpStatus.className='status low'; cpStatus.textContent='⚠️ Protein low at '+cpPct.toFixed(1)+'% — target 13-15%'; }
+  else { cpStatus.className='status high'; cpStatus.textContent='ℹ️ Protein high at '+cpPct.toFixed(1)+'% — could reduce concentrate to save cost'; }
+}
+calc();
+</script>
+</body>
+</html>
